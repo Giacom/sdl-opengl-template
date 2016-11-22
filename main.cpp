@@ -1,6 +1,6 @@
 #include "opengl.h"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 int Abs(int num) {
 	return num > 0 ? num : -num;

@@ -703,7 +703,7 @@ void (GLAPIENTRYP glNamedBufferPageCommitmentEXT)(GLuint buffer, GLintptr offset
 void (GLAPIENTRYP glNamedBufferPageCommitmentARB)(GLuint buffer, GLintptr offset, GLsizeiptr size, GLboolean commit);
 void (GLAPIENTRYP glTexPageCommitmentARB)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit);
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 // C++ doesn't like implicit function pointer casts, so here's a workaround.
 #define PROC_CAST *(void**)&

@@ -11,7 +11,7 @@ Simple and useful (supposedly) cross-platform template for OpenGL. Uses SDL_GL_G
 // instead of
 #include <gl.h>
 // or
-#include <SDL2/SDL_opengl.h>
+#include <SDL_opengl.h>
 ```
 
 ..and you don't need to link it in the Makefile..
