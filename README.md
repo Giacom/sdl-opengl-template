@@ -20,8 +20,8 @@ Simple and useful (supposedly) cross-platform template for OpenGL. Uses SDL_GL_G
 LDLIBS = -lSDL2 # No gl here
 ```
 
-Then make sure you use `Init_OpenGL()` after creating the OpenGL context to initialise the functions.
+..then make sure you use `Init_OpenGL()` after creating the OpenGL context to initialise the functions.
 
 ## Credits
 
-The [opengl.h](opengl.h) and [opengl.cpp](opengl.cpp) files are by nlguillemot who provided the source code and explains code in [this article](https://nlguillemot.wordpress.com/2016/11/18/opengl-renderer-design/). The code is also derived from from Khronos' glcorearb.h. 
+The [opengl.h](opengl.h) and [opengl.cpp](opengl.cpp) files are by nlguillemot who provided the source code and talks about it in [this article](https://nlguillemot.wordpress.com/2016/11/18/opengl-renderer-design/). The opengl files are also derived from from Khronos' glcorearb.h. 
