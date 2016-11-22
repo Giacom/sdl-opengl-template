@@ -20,6 +20,7 @@ Simple and useful (supposedly) cross-platform template for OpenGL. Uses SDL_GL_G
 LDLIBS = -lSDL2 # No gl here
 ```
 
+Then make sure you use `Init_OpenGL()` after creating the OpenGL context to initialise the functions.
 
 ## Credits
 
