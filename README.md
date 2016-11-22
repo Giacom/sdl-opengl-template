@@ -24,4 +24,4 @@ LDLIBS = -lSDL2 # No gl here
 
 ## Credits
 
-The [opengl.h](opengl.h) and [opengl.cpp](opengl.cpp) files are by nlguillemot who provided the source code and talks about it in [this article](https://nlguillemot.wordpress.com/2016/11/18/opengl-renderer-design/). The opengl files are also derived from from Khronos' glcorearb.h. 
+The [opengl.h](opengl.h) and [opengl.cpp](opengl.cpp) files are by nlguillemot who provided the [source code](https://github.com/nlguillemot/dof/blob/ad41e71b17446e9c6522570b1bed5571ed9dabdd/viewer/opengl.h) and talks about it in [this article](https://nlguillemot.wordpress.com/2016/11/18/opengl-renderer-design/). The opengl files are also derived from from Khronos' glcorearb.h. 
