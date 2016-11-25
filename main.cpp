@@ -58,6 +58,9 @@ int main() {
 	glViewport(0, 0, WindowWidth, WindowHeight);
 	glClearColor(0.39f, 0.58f, 0.92f, 1.0f);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	// Triangle data
 	GLuint vertexArrayID;
 	glGenVertexArrays(1, &vertexArrayID);
