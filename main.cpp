@@ -12,8 +12,8 @@ int PingPong(int num, int length) {
 
 int main() {
 
-	const int WindowWidth = 960 * 2;
-	const int WindowHeight = 720 * 2;
+	const int WindowWidth = 960;
+	const int WindowHeight = 720;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING)) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error: %s\n", SDL_GetError());
@@ -55,6 +55,7 @@ int main() {
 
 
 	int r, g, b = 0;
+	glViewport(0, 0, WindowWidth, WindowHeight);
 	glClearColor(0.39f, 0.58f, 0.92f, 1.0f);
 
 	// Triangle data
@@ -138,6 +139,12 @@ int main() {
 			if (event.type == SDL_QUIT) {
 				running = false;
 				break;
+			}
+
+			if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
+				int x = event.window.data1;
+				int y = event.window.data2;
+				glViewport(0, 0, x, y);
 			}
 		}
 
