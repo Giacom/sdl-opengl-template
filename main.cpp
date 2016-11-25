@@ -54,28 +54,15 @@ int main() {
 	}
 
 
-	int r, g, b = 0;
+	int r = 0;
+	int g = 0;
+	int b = 0;
 	glViewport(0, 0, WindowWidth, WindowHeight);
 	glClearColor(0.39f, 0.58f, 0.92f, 1.0f);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// Triangle data
-	GLuint vertexArrayID;
-	glGenVertexArrays(1, &vertexArrayID);
-	glBindVertexArray(vertexArrayID);
-
-	static const GLfloat vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f,  0.5f, 0.0f,
-	};
-
-	GLuint vertexBufferObjects; // store the buffer in here
-	glGenBuffers(1, &vertexBufferObjects); // generated the buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjects); // bind our buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// Shaders
 	const GLchar* vertexShaderSource = "#version 330 core\n"
@@ -132,10 +119,53 @@ int main() {
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
+	// Triangle data
+
+	GLuint vertexArrayObject;
+	glGenVertexArrays(1, &vertexArrayObject);
+
+	// Bind for our vertex array
+	glBindVertexArray(vertexArrayObject);
+
+	static const GLfloat vertices[] = {
+		-0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		0.0f,  0.5f, 0.0f,
+	};
+
+	GLuint vertexBufferObjects; // store the buffer in here
+
+	glGenBuffers(1, &vertexBufferObjects); // generated the buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjects); // bind our buffer
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// Vertex Attributes
+
+	glVertexAttribPointer(/* layout */ 0, /* size */ 3, /* type */ GL_FLOAT, /* normalised? */ GL_FALSE, /* stride */ 3 * sizeof(GLfloat), /* array buffer offset */ (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindVertexArray(0); // Unbind
 
 	bool running = true;
 	SDL_Event event;
+
+	float current = SDL_GetTicks();
+	float last = current;
+	float interval = 1000 / 60;
+
 	while (running) {
+
+		// Limit frame rate
+		current = SDL_GetTicks();
+
+		float dt = current - last;
+
+		if (dt < interval) {
+			SDL_Delay(interval - dt);
+			continue;
+		}
+
+		last = current;
 
 		// Input
 		while(SDL_PollEvent(&event)) {
@@ -162,13 +192,9 @@ int main() {
 
 		// Draw Triangle
 		glUseProgram(shaderProgram);
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjects);
-		glVertexAttribPointer(0 /* layout */, /* size */ 3, /* type */ GL_FLOAT, /* normalised? */ GL_FALSE, /* stride */ 0, /* array buffer offset */ (void*)0);
-
-		glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0, draw 3 vertices
-
-		glDisableVertexAttribArray(0); 
+		glBindVertexArray(vertexArrayObject);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindVertexArray(0);
 
 		SDL_GL_SwapWindow(window);
 	}
