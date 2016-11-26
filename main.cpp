@@ -1,6 +1,7 @@
-#include "opengl.h"
-
 #include <SDL.h>
+#include <vector>
+
+#include "opengl.h"
 
 int Abs(int num) {
 	return num > 0 ? num : -num;
@@ -126,19 +127,20 @@ int main() {
          0.5f, -0.5f, 0.0f,  // Bottom Right
         -0.5f, -0.5f, 0.0f,  // Bottom Left
         -0.75f,  0.5f, 0.0f,  // Top Left
-		 0.0f,  0.95f, 0.0f  // Top middle
+		 0.0f,  0.95f, 0.0f,  // Top middle,
     };
-	
-    GLuint indices[] = { 
+
+	std::vector<GLuint> indices = {
         0, 1, 3,
         1, 2, 3,
-		3, 4, 0 
-    };
+		3, 4, 0,
+	};
 
     GLuint VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
+	
     // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
     glBindVertexArray(VAO);
 
@@ -148,7 +150,7 @@ int main() {
 
 	// Finally the EBO
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indices.size(), indices.data(), GL_STATIC_DRAW);
 
 	// Now give the attributes to the VAO
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
@@ -217,7 +219,7 @@ int main() {
 		glUseProgram(shaderProgram);
 
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		SDL_GL_SwapWindow(window);
