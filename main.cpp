@@ -12,7 +12,7 @@ int PingPong(int num, int length) {
 
 int main() {
 
-	const int WindowWidth = 960;
+	const int WindowWidth = 720;
 	const int WindowHeight = 720;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING)) {
@@ -119,32 +119,54 @@ int main() {
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	// Triangle data
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	GLuint vertexArrayObject;
-	glGenVertexArrays(1, &vertexArrayObject);
+	GLfloat vertices[] = {
+         0.5f,  0.5f, 0.0f,  // Top Right
+         0.5f, -0.5f, 0.0f,  // Bottom Right
+        -0.5f, -0.5f, 0.0f,  // Bottom Left
+        -0.5f,  0.5f, 0.0f   // Top Left 
+    };
+    GLuint indices[] = {  // Note that we start from 0!
+        0, 1, 3,  // First Triangle
+        1, 2, 3   // Second Triangle
+    };
 
-	// Bind for our vertex array
-	glBindVertexArray(vertexArrayObject);
+    GLuint VBO, VAO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+    glBindVertexArray(VAO);
 
-	static const GLfloat vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f,  0.5f, 0.0f,
-	};
+	// Now the VBO..
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	GLuint vertexBufferObjects; // store the buffer in here
+	// Finally the EBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	glGenBuffers(1, &vertexBufferObjects); // generated the buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjects); // bind our buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	// Now give the attributes to the VAO
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
+
+    glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+
 
 	// Vertex Attributes
 
-	glVertexAttribPointer(/* layout */ 0, /* size */ 3, /* type */ GL_FLOAT, /* normalised? */ GL_FALSE, /* stride */ 3 * sizeof(GLfloat), /* array buffer offset */ (void*)0);
+	glVertexAttribPointer(0, // Layout
+	                      3, // Size
+						  GL_FLOAT, // Type
+						  GL_FALSE, // Normalised
+						  3 * sizeof(GLfloat), // Stride
+						  (void*) 0); // Array Buffer Offset
 	glEnableVertexAttribArray(0);
 
-	glBindVertexArray(0); // Unbind
+	glBindVertexArray(0); // Unbind the VOA
 
 	bool running = true;
 	SDL_Event event;
@@ -192,8 +214,9 @@ int main() {
 
 		// Draw Triangle
 		glUseProgram(shaderProgram);
-		glBindVertexArray(vertexArrayObject);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		SDL_GL_SwapWindow(window);
