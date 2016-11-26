@@ -122,14 +122,17 @@ int main() {
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	GLfloat vertices[] = {
-         0.5f,  0.5f, 0.0f,  // Top Right
+         0.75f,  0.5f, 0.0f,  // Top Right
          0.5f, -0.5f, 0.0f,  // Bottom Right
         -0.5f, -0.5f, 0.0f,  // Bottom Left
-        -0.5f,  0.5f, 0.0f   // Top Left 
+        -0.75f,  0.5f, 0.0f,  // Top Left
+		 0.0f,  0.95f, 0.0f  // Top middle
     };
-    GLuint indices[] = {  // Note that we start from 0!
-        0, 1, 3,  // First Triangle
-        1, 2, 3   // Second Triangle
+	
+    GLuint indices[] = { 
+        0, 1, 3,
+        1, 2, 3,
+		3, 4, 0 
     };
 
     GLuint VBO, VAO, EBO;
@@ -165,8 +168,6 @@ int main() {
 						  3 * sizeof(GLfloat), // Stride
 						  (void*) 0); // Array Buffer Offset
 	glEnableVertexAttribArray(0);
-
-	glBindVertexArray(0); // Unbind the VOA
 
 	bool running = true;
 	SDL_Event event;
@@ -216,7 +217,7 @@ int main() {
 		glUseProgram(shaderProgram);
 
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		SDL_GL_SwapWindow(window);
