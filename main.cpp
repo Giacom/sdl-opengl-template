@@ -68,21 +68,26 @@ int main() {
 	// Shaders
 	const GLchar* vertexShaderSource = "#version 330 core\n"
 		"layout (location = 0) in vec3 position;\n"
-		"layout (location = 1) in vec2 texCoord;\n"
+		"layout (location = 1) in vec3 color;\n"
+		"layout (location = 2) in vec2 texCoord;\n"
+		"out vec3 ourColor;\n"
 		"out vec2 TexCoord;\n"
 		"void main()\n"
 		"{\n"
 		"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
 		"TexCoord = texCoord;\n"
+		"ourColor = color;\n"
 		"}\0";
 
 	const GLchar* fragmentShaderSource = "#version 330 core\n"
+		"in vec3 ourColor;\n"
 		"in vec2 TexCoord;\n"
 		"out vec4 color;\n"
 		"uniform sampler2D ourTexture;\n"
 		"void main()\n"
 		"{\n"
 		"color = texture(ourTexture, TexCoord);\n"
+		"color.rgb *= ourColor;\n"
 		"}\n\0";
 
 	GLint success;
@@ -132,7 +137,7 @@ int main() {
 		0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f, // Top Right
 		0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Bottom Right
 		-0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Top Left 
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f  // Top Left 
     };
 
 	GLuint indices[] = {
@@ -166,11 +171,11 @@ int main() {
 							(void*) 0); // Array Buffer Offset
 		glEnableVertexAttribArray(0);
 
-		// glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-		// glEnableVertexAttribArray(1);
-
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(2);
 	}
 
 	glBindVertexArray(0);
