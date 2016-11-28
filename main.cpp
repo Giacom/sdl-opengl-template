@@ -68,16 +68,21 @@ int main() {
 	// Shaders
 	const GLchar* vertexShaderSource = "#version 330 core\n"
 		"layout (location = 0) in vec3 position;\n"
+		"layout (location = 1) in vec2 texCoord;\n"
+		"out vec2 TexCoord;\n"
 		"void main()\n"
 		"{\n"
 		"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
+		"TexCoord = texCoord;\n"
 		"}\0";
 
 	const GLchar* fragmentShaderSource = "#version 330 core\n"
+		"in vec2 TexCoord;\n"
 		"out vec4 color;\n"
+		"uniform sampler2D ourTexture;\n"
 		"void main()\n"
 		"{\n"
-		"color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+		"color = texture(ourTexture, TexCoord);\n"
 		"}\n\0";
 
 	GLint success;
@@ -123,53 +128,82 @@ int main() {
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	GLfloat vertices[] = {
-         0.75f,  0.5f, 0.0f,  // Top Right
-         0.5f, -0.5f, 0.0f,  // Bottom Right
-        -0.5f, -0.5f, 0.0f,  // Bottom Left
-        -0.75f,  0.5f, 0.0f,  // Top Left
-		 0.0f,  0.95f, 0.0f,  // Top middle,
+		// Positions          // Colors           	  // Texture Coords
+		0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f, // Top Right
+		0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Bottom Right
+		-0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Top Left 
     };
 
-	std::vector<GLuint> indices = {
+	GLuint indices[] = {
         0, 1, 3,
         1, 2, 3,
-		3, 4, 0,
 	};
 
     GLuint VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
-	
+
     // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
     glBindVertexArray(VAO);
+	{
+		// Now the VBO..
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	// Now the VBO..
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		// Finally the EBO
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	// Finally the EBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indices.size(), indices.data(), GL_STATIC_DRAW);
+		// Vertex Attributes
 
-	// Now give the attributes to the VAO
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, // Layout
+							3, // Size
+							GL_FLOAT, // Type
+							GL_FALSE, // Normalised
+							8 * sizeof(GLfloat), // Stride
+							(void*) 0); // Array Buffer Offset
+		glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
+		// glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		// glEnableVertexAttribArray(1);
 
-    glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(1);
+	}
 
+	glBindVertexArray(0);
 
-	// Vertex Attributes
+	// Texture loading
 
-	glVertexAttribPointer(0, // Layout
-	                      3, // Size
-						  GL_FLOAT, // Type
-						  GL_FALSE, // Normalised
-						  3 * sizeof(GLfloat), // Stride
-						  (void*) 0); // Array Buffer Offset
-	glEnableVertexAttribArray(0);
+	SDL_Surface* image = SDL_LoadBMP("texture.bmp");
+	if (!image) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture.bmp! %s", SDL_GetError());
+		return 1;
+	}
+
+	GLuint texture = 0;
+	glGenTextures(1, &texture);
+	{
+		glBindTexture(GL_TEXTURE_2D, texture); // All texture functions will now operate on this texture
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // X wrapping
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Y wrapping
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Far away
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Close up
+
+		// Use GL_BGR because bitmaps are silly
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->w, image->h, 0, GL_BGR, GL_UNSIGNED_BYTE, image->pixels);
+		SDL_FreeSurface(image);
+	}
+	glBindTexture(GL_TEXTURE_2D, 0); // Unbind
+
+	for(GLenum err; (err = glGetError()) != GL_NO_ERROR;) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "OpenGL Init: 0x%x", err);
+	}
+
 
 	bool running = true;
 	SDL_Event event;
@@ -217,12 +251,21 @@ int main() {
 
 		// Draw Triangle
 		glUseProgram(shaderProgram);
+		
+		// Bind texture
+		glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glUniform1i(glGetUniformLocation(shaderProgram, "ourTexture"), 0);
 
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		SDL_GL_SwapWindow(window);
 	}
+    // Properly de-allocate all resources once they've outlived their purpose
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
 	return 0;
 }
