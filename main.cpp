@@ -64,6 +64,8 @@ int main() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	glEnable(GL_CULL_FACE);
+
 
 	// Shaders
 	const GLchar* vertexShaderSource = "#version 330 core\n"
@@ -134,15 +136,15 @@ int main() {
 
 	GLfloat vertices[] = {
 		// Positions          // Colors           	  // Texture Coords
-		0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Top Right
-		0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f, // Bottom Right
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,  // Top Left 
 		-0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f, // Bottom Left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f  // Top Left 
+		0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f, // Bottom Right
+		0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Top Right
     };
 
 	GLuint indices[] = {
-        0, 1, 3,
-        1, 2, 3,
+        0, 1, 2,
+        2, 3, 0,
 	};
 
     GLuint VBO, VAO, EBO;
