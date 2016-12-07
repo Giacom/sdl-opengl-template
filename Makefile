@@ -1,4 +1,4 @@
-CXXFLAGS = -Wall -Wextra -Werror -std=c++11
+CXXFLAGS = -Wall -Wextra -Werror -std=c++14
 DEBUGFLAGS = -g
 RELEASEFLAGS = -O2
 
@@ -14,3 +14,5 @@ release:
 	${CXX}  -o ${BIN_NAME} ${SOURCES} ${LDLIBS} ${CXXFLAGS} ${RELEASEFLAGS} ${SDL_FLAGS} ${SDL_LIBS}
 clean: 
 	$(RM) main
+run: all
+	./${BIN_NAME}

@@ -1,7 +1,34 @@
 #include <SDL.h>
 #include <vector>
+#include <cstdlib>
+#include <ctime>
 
 #include "opengl.h"
+
+// Shaders
+const GLchar* vertexShaderSource = "#version 330 core\n"
+	"layout (location = 0) in vec3 position;\n"
+	"layout (location = 1) in vec3 color;\n"
+	"layout (location = 2) in vec2 texCoord;\n"
+	"out vec3 ourColor;\n"
+	"out vec2 TexCoord;\n"
+	"void main()\n"
+	"{\n"
+	"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
+	"TexCoord = texCoord;\n"
+	"ourColor = color;\n"
+	"}\0";
+
+const GLchar* fragmentShaderSource = "#version 330 core\n"
+	"in vec3 ourColor;\n"
+	"in vec2 TexCoord;\n"
+	"out vec4 color;\n"
+	"uniform sampler2D ourTexture;\n"
+	"void main()\n"
+	"{\n"
+	"color = texture(ourTexture, TexCoord);\n"
+	"color.rgb *= ourColor;\n"
+	"}\n\0";
 
 int Abs(int num) {
 	return num > 0 ? num : -num;
@@ -11,7 +38,42 @@ int PingPong(int num, int length) {
 	return length - Abs((num % (length * 2)) - length);
 }
 
-int main() {
+#define SIZE_OF_ARRAY(_array) (sizeof(_array) / sizeof(_array[0]))
+
+std::vector<GLfloat> vertices;
+
+/*
+const GLuint indices[] = {
+	0, 1, 2,
+	2, 3, 0,
+};
+*/
+
+struct Sprite {
+	float x;
+	float y;
+};
+
+Sprite sprites[255];
+
+float get_rand() {
+	return ((float)(std::rand() % 200) * 0.005f) - 0.25f;
+}
+
+void draw_sprites(GLuint shaderProgram, GLuint texture, GLuint VAO) {
+		// Draw Triangle
+		glUseProgram(shaderProgram);
+		
+		// Bind texture
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+		glBindVertexArray(0);
+}
+
+int main(int /*argc*/, char** /*argv[]*/) {
 
 	const int WindowWidth = 720;
 	const int WindowHeight = 720;
@@ -54,43 +116,40 @@ int main() {
 		SDL_Log("SDL_GL_CONTEXT_MINOR_VERSION: %d\n", value);
 	}
 
+	std::srand(std::time(nullptr)); // use current time as seed for random generator
 
-	int r = 0;
-	int g = 0;
-	int b = 0;
+	printf("%f\n", get_rand());
+
+	//const int vertice_batch_size = 8 * 6;
+	std::size_t size = SIZE_OF_ARRAY(sprites);
+	for (std::size_t i = 0; i < size; i++) {
+		float x = get_rand();
+		float y = get_rand();
+		sprites[i] = (Sprite){ .x = x, .y = y };
+
+		float c = 1.0f - (float)i  / (float)size;
+
+		vertices.insert(vertices.end(),
+		{	
+			-0.5f + x,  0.5f + y, 0.0f,  1.0, c, c,   0.0f, 0.0f,  // Top Left 
+			-0.5f + x, -0.5f + y, 0.0f,  c, 1.0, c,   0.0f, 1.0f, // Bottom Left
+			0.5f + x, -0.5f + y, 0.0f,   c, c, 1.0,   1.0f, 1.0f, // Bottom Right
+			
+			0.5f + x, -0.5f + y, 0.0f,   c, c, 1.0,   1.0f, 1.0f, // Bottom Right
+			0.5f + x,  0.5f + y, 0.0f,   c, 1.0, c,   1.0f, 0.0f, // Top Right
+			-0.5f + x,  0.5f + y, 0.0f,  1.0, c, c,   0.0f, 0.0f  // Top Left 
+		});
+	}
+
+
 	glViewport(0, 0, WindowWidth, WindowHeight);
 	glClearColor(0.39f, 0.58f, 0.92f, 1.0f);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glEnable(GL_CULL_FACE);
+//	glEnable(GL_CULL_FACE);
 
-
-	// Shaders
-	const GLchar* vertexShaderSource = "#version 330 core\n"
-		"layout (location = 0) in vec3 position;\n"
-		"layout (location = 1) in vec3 color;\n"
-		"layout (location = 2) in vec2 texCoord;\n"
-		"out vec3 ourColor;\n"
-		"out vec2 TexCoord;\n"
-		"void main()\n"
-		"{\n"
-		"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
-		"TexCoord = texCoord;\n"
-		"ourColor = color;\n"
-		"}\0";
-
-	const GLchar* fragmentShaderSource = "#version 330 core\n"
-		"in vec3 ourColor;\n"
-		"in vec2 TexCoord;\n"
-		"out vec4 color;\n"
-		"uniform sampler2D ourTexture;\n"
-		"void main()\n"
-		"{\n"
-		"color = texture(ourTexture, TexCoord);\n"
-		"color.rgb *= ourColor;\n"
-		"}\n\0";
 
 	GLint success;
 	GLchar logBuffer[512];
@@ -134,50 +193,34 @@ int main() {
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	GLfloat vertices[] = {
-		// Positions          // Colors           	  // Texture Coords
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,  // Top Left 
-		-0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f, // Bottom Left
-		0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f, // Bottom Right
-		0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // Top Right
-    };
+	GLuint VBO, VAO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
 
-	GLuint indices[] = {
-        0, 1, 2,
-        2, 3, 0,
-	};
-
-    GLuint VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
-    glBindVertexArray(VAO);
+	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+	glBindVertexArray(VAO);
 	{
 		// Now the VBO..
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		{
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_DYNAMIC_DRAW);
 
-		// Finally the EBO
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+			// Vertex Attributes
 
-		// Vertex Attributes
+			glVertexAttribPointer(0, // Layout
+								3, // Size
+								GL_FLOAT, // Type
+								GL_FALSE, // Normalised
+								8 * sizeof(GLfloat), // Stride
+								(void*) 0); // Array Buffer Offset
+			glEnableVertexAttribArray(0);
 
-		glVertexAttribPointer(0, // Layout
-							3, // Size
-							GL_FLOAT, // Type
-							GL_FALSE, // Normalised
-							8 * sizeof(GLfloat), // Stride
-							(void*) 0); // Array Buffer Offset
-		glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+			glEnableVertexAttribArray(1);
 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(1);
-
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(2);
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+			glEnableVertexAttribArray(2);
+		}
 	}
 
 	glBindVertexArray(0);
@@ -247,31 +290,15 @@ int main() {
 			}
 		}
 
-
-		r = (r + 2) % (255 * 2);
-		g = (g + 4) % (255 * 2);
-		b = (b + 8) % (255 * 2);
-
 		//Rendering
-		glClearColor((float)PingPong(r, 255) / 255, (float)PingPong(g, 255) / 255, (float)PingPong(b, 255) / 255, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Draw Triangle
-		glUseProgram(shaderProgram);
-		
-		// Bind texture
-		glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
-
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		draw_sprites(shaderProgram, texture, VAO);
 
 		SDL_GL_SwapWindow(window);
 	}
-    // Properly de-allocate all resources once they've outlived their purpose
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+	// Properly de-allocate all resources once they've outlived their purpose
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
 	return 0;
 }
