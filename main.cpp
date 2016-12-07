@@ -11,7 +11,7 @@ int PingPong(int num, int length) {
 	return length - Abs((num % (length * 2)) - length);
 }
 
-int main() {
+int main(int /*argc*/, char** /*argv[]*/) {
 
 	const int WindowWidth = 720;
 	const int WindowHeight = 720;
